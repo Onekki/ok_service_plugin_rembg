@@ -1,0 +1,55 @@
+name: Release
+
+on:
+  push:
+    tags:
+        - "[0-9]+.[0-9]+.[0-9]+"
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        include:
+            - build: windows
+              os: windows-latest
+              target: windows-x86_64
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+      - name: Setup python
+        uses: actions/setup-python@v3
+        with:
+            python-version: "3.10"
+    
+      - name: Get version
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Build
+        run: |
+            pip install -r requirements.txt pyinstaller
+            pyinstaller -y -p ./app/ ./app/main.py
+      - name: Archive
+        shell: bash
+        run: |
+          source_file="./dist/main/*"
+          target_zip="ok_service_plugin_rembg-${{ env.VERSION }}-${{ matrix.target }}"
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            7z a "$target_zip.zip" "${source_file}"
+            echo "ASSET=$target_zip.zip" >> $GITHUB_ENV
+          else
+            tar -czf "$target_zip.tar.gz" "${source_file}"
+            echo "ASSET=$target_zip.tar.gz" >> $GITHUB_ENV
+          fi
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ${{ env.ASSET }}
