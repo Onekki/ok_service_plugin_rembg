@@ -19,6 +19,12 @@ jobs:
             - build: windows
               os: windows-latest
               target: windows-x86_64
+            - build: macos
+              os: macos-latest
+              target: macos-x86_64
+            - build: ubuntu
+              os: ubuntu-latest
+              target: ubuntu-x86_64
 
     steps:
       - name: Clone repository
@@ -39,14 +45,13 @@ jobs:
       - name: Archive
         shell: bash
         run: |
-          source_file="./dist/main/*"
-          target_zip="ok_service_plugin_rembg-${{ env.VERSION }}-${{ matrix.target }}"
+          target_file="ok_service_plugin_rembg-${{ env.VERSION }}-${{ matrix.target }}"
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            7z a "$target_zip.zip" "${source_file}"
-            echo "ASSET=$target_zip.zip" >> $GITHUB_ENV
+            7z a $target_file.zip ./dist/main/*
+            echo "ASSET=$target_file.zip" >> $GITHUB_ENV
           else
-            tar -czf "$target_zip.tar.gz" "${source_file}"
-            echo "ASSET=$target_zip.tar.gz" >> $GITHUB_ENV
+            tar -czf $target_file.tar.gz -C dist main
+            echo "ASSET=$target_file.tar.gz" >> $GITHUB_ENV
           fi
       - name: Release
         uses: softprops/action-gh-release@v1
