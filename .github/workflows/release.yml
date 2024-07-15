@@ -17,13 +17,16 @@ jobs:
       matrix:
         include:
             - build: windows
-              os: windows-latest
+              os: windows-2022
               target: windows-x86_64
             - build: macos
-              os: macos-latest
+              os: macos-13
               target: macos-x86_64
+            - build: macos
+              os: macos-14
+              target: macos-arm64
             - build: ubuntu
-              os: ubuntu-latest
+              os: ubuntu-22.04
               target: ubuntu-x86_64
 
     steps:
